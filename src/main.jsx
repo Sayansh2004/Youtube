@@ -4,10 +4,28 @@ import './index.css'
 import App from './App.jsx'
 import { Provider } from 'react-redux'
 import appStore from './utils/appstore.js'
+import { createBrowserRouter,RouterProvider } from 'react-router-dom';
+import Body from './components/Body.jsx'
+
+const appRouter=createBrowserRouter([
+  {
+    path:"/",
+    element:<App/>,
+    children:[
+      {
+        path:"/",
+        element:<Body/>
+
+      }
+    ]
+  }
+])
+
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={appStore}>
-       <App />
+     <RouterProvider router={appRouter}></RouterProvider>
     </Provider>
    
   </StrictMode>,

@@ -17,7 +17,7 @@ app.listen(PORT,()=>{
 app.get("/videos",async(req,res)=>{
     try{
          const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&maxResults=20&key=${process.env.YOUTUBE_API_KEY}`
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&maxResults=30&key=${process.env.GOOGLE_API_KEY}`
     );
 
     const data = await response.json();
