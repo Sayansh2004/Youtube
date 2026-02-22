@@ -1,13 +1,35 @@
 import { useDispatch } from "react-redux";
 import { decider } from "../utils/appSlice";
+import { useEffect } from "react";
+// import { YOUTUBE_SUGGESTIONS_API } from "../utils/constants";
+import { useState } from "react";
 
 export default function Header() {
+  const [searchQuery,setSearchQuery]=useState("");
+
+  useEffect(()=>{
+
+    const timer=setTimeout(()=>{return getSearchSuggestions()},200);    //debouncing
+    
+    return ()=>{
+      clearTimeout(timer);
+    }
+    
+  },[searchQuery])
     const dispatch=useDispatch();
 
     const handleHamBurgerClick=()=>{
         dispatch(decider());
     }
 
+
+    const getSearchSuggestions=async()=>{
+      const suggestions=await fetch(`http://localhost:3400/suggest?query=${searchQuery}`);
+      const json = await suggestions.json();
+console.log(json?.data[1]);
+     
+      
+    }
 
   return (
     <div className="grid grid-cols-12 items-center px-4 py-2 shadow-md bg-white">
@@ -37,6 +59,8 @@ export default function Header() {
             placeholder="Search"
             className="w-full border border-gray-300 rounded-l-full px-4 py-2
                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={searchQuery}
+            onChange={(e)=>setSearchQuery(e.target.value) }
           />
 
           <button

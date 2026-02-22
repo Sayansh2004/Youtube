@@ -28,3 +28,16 @@ app.get("/videos",async(req,res)=>{
         return res.status(400).json({success:false,message:"failed to fetch videos"})
     }
 })
+
+app.get("/suggest",async(req,res)=>{
+    try{
+        const {query}=req.query;
+        const response=await fetch(  `http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${query}`);
+        const data=await response.json();
+        return res.status(200).json({success:true,message:"Suggestions provided successfully",data})
+
+    }catch(err){
+        console.error(err.message);
+        return res.status(400).json({success:false,message:"failed to provide suggestions"})
+    }
+})
