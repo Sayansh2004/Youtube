@@ -1,21 +1,34 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { decider } from "../utils/appSlice";
 import { useEffect } from "react";
 // import { YOUTUBE_SUGGESTIONS_API } from "../utils/constants";
 import { useState } from "react";
+import { cacheResults } from "../utils/searchSlice";
 
 export default function Header() {
   const [searchQuery,setSearchQuery]=useState("");
+  const [suggestions,setSuggestions]=useState([]);
+  const [showSuggestions,setShowSuggestions]=useState(false);
+  const searchCache=useSelector((store)=>store.search);
+ useEffect(() => {
 
-  useEffect(()=>{
-
-    const timer=setTimeout(()=>{return getSearchSuggestions()},200);    //debouncing
-    
-    return ()=>{
-      clearTimeout(timer);
+   if(!searchQuery){
+      setSuggestions([]);
+      return;
     }
-    
-  },[searchQuery])
+
+  const timer = setTimeout(() => {
+   
+    if (searchCache[searchQuery]) {
+      setSuggestions(searchCache[searchQuery]);
+      return;
+    } else {
+      getSearchSuggestions();
+    }
+  }, 200);
+
+  return () => clearTimeout(timer);
+}, [searchQuery,searchCache]);
     const dispatch=useDispatch();
 
     const handleHamBurgerClick=()=>{
@@ -24,8 +37,12 @@ export default function Header() {
 
 
     const getSearchSuggestions=async()=>{
-      const suggestions=await fetch(`http://localhost:3400/suggest?query=${searchQuery}`);
-      const json = await suggestions.json();
+      const response=await fetch(`http://localhost:3400/suggest?query=${searchQuery}`);
+      const json = await response.json();
+      setSuggestions(json?.data[1]);
+      dispatch(cacheResults({
+        [searchQuery]:json?.data[1]
+      }))
 console.log(json?.data[1]);
      
       
@@ -50,28 +67,48 @@ console.log(json?.data[1]);
         />
       </div>
 
-      {/* Middle Section */}
       <div className="col-span-8 flex justify-center">
-        <div className="flex w-full max-w-xl">
-          
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full border border-gray-300 rounded-l-full px-4 py-2
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            value={searchQuery}
-            onChange={(e)=>setSearchQuery(e.target.value) }
-          />
+  <div className="relative w-full max-w-xl">
 
-          <button
-            className="px-6 border border-gray-300 border-l-0 
-                       rounded-r-full bg-gray-100 hover:bg-gray-200 transition"
-          >
-            🔍
-          </button>
+    {/* Input + Button */}
+    <div className="flex">
+      <input
+        type="text"
+        placeholder="Search"
+        className="w-full border border-gray-300 rounded-l-full px-4 py-2
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onFocus={()=>setShowSuggestions(true)}
+        onBlur={()=>{setTimeout(()=>setShowSuggestions(false),200)}}
+      />
 
-        </div>
+      <button
+        className="px-6 border border-gray-300 border-l-0 
+                   rounded-r-full bg-gray-100 hover:bg-gray-200"
+      >
+        🔍
+      </button>
+    </div>
+
+    {/* Suggestions Dropdown */}
+    {showSuggestions && suggestions.length > 0 && (
+      <div className="absolute top-12 w-full bg-white shadow-lg rounded-lg border border-gray-200 z-50">
+        <ul>
+          {suggestions.map((suggestion) => (
+            <li
+              key={suggestion}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+            >
+              🔍 {suggestion}
+            </li>
+          ))}
+        </ul>
       </div>
+    )}
+
+  </div>
+</div>
 
       {/* Right Section */}
       <div className="col-span-2 flex justify-end">
